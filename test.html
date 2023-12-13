@@ -37,7 +37,7 @@
                             Locality: "" + Locality,
                             State: "" + State,
                             Postcode: "" + Postcode,
-                            RequestKey: "",
+                            RequestKey: "RK-416BA-23CB5-8E94A-C2357-14A15-34790-F59F4-4B9F8",
                             OutputFormat: "json"
                         },
                         timeout: 10000,
@@ -214,8 +214,8 @@
                                                 $('<span id="input-address"><span id="faddress_line"></span><br><span id="faddress_city"></span><br><span id="faddress_state"></span><br><span id="faddress_postcode"></span><br></span>').appendTo(failmyModalContainer);
 
                                                 var btnRow = $('<div class="btn-row"></div>').appendTo(failmyModalContainer);
-                                                var updateBtn = $('<button class="av_button" id="btn-update-address">Update address</button>').appendTo(btnRow);
-                                                var proceedBtn = $('<button class="av_button" id="btn-proceed-address">Proceed</button>').appendTo(btnRow);
+                                                var updateBtn = $('<button class="av_button" id="fbtn-update-address">Update address</button>').appendTo(btnRow);
+                                                var proceedBtn = $('<button class="av_button" id="fbtn-proceed-address">Proceed</button>').appendTo(btnRow);
                                             }
                                             var AddressLine1 = $('#checkout_shipping_address_address1').val();
                                             var Locality = $('#checkout_shipping_address_city').val();
@@ -263,7 +263,7 @@
                                                     }, 1000);
                                                 });
                                             }
-                                            $('#btn-update-address').click(function () {
+                                            $('#fbtn-update-address').click(function () {
                                                 if (continueButton) {
                                                     $('#failmyModal').hide();
                                                     continueButton.removeAttribute('disabled');
@@ -332,8 +332,8 @@
                                 $('<span id="input-address"><span id="eaddress_line"></span><br><span id="eaddress_city"></span><br><span id="eaddress_state"></span><br><span id="eaddress_postcode"></span><br></span>').appendTo(errormyModalContainer);
 
                                 var btnRow = $('<div class="btn-row"></div>').appendTo(errormyModalContainer);
-                                var updateBtn = $('<button class="av_button" id="btn-update-address">Update address</button>').appendTo(btnRow);
-                                var proceedBtn = $('<button class="av_button" id="btn-proceed-address">Proceed</button>').appendTo(btnRow);
+                                var updateBtn = $('<button class="av_button" id="ebtn-update-address">Update address</button>').appendTo(btnRow);
+                                var proceedBtn = $('<button class="av_button" id="ebtn-proceed-address">Proceed</button>').appendTo(btnRow);
                             }
                           if($('#checkout_shipping_address_address2').val()){
                                                   var newSpan = $('<span></span>').text($('#checkout_shipping_address_address2').val());
@@ -374,7 +374,7 @@
                                                     });
                           }
 
-                            $('#btn-update-address').click(function () {
+                            $('#ebtn-update-address').click(function () {
                                 if (continueButton) {
                                     $('#errormyModal').hide();
                                     document.getElementById('eaddress_line').innerHTML = $('#checkout_shipping_address_address1').val();
