@@ -350,9 +350,14 @@
                                 var proceedBtn = $('<button class="av_button" id="ebtn-proceed-address">Proceed</button>').appendTo(btnRow);
                             }
                           if($('#checkout_shipping_address_address2').val()){
-                                                  var newSpan = $('<span></span>').text($('#checkout_shipping_address_address2').val());
+                                                  var newSpan = $('<span id="eaddress_line2"></span>').text($('#checkout_shipping_address_address2').val());
+                                                  if(!document.getElementById('eaddress_line2')){
                                                       $('#eaddress_line').after($('<br>'));
                                                       $('#eaddress_line').next('br').after(newSpan);
+                                                  }
+                                                  else{
+                                                    $('#eaddress_line2').text($('#checkout_shipping_address_address2').val());
+                                                  }
                                             }
                           var continueButton = document.getElementById('continue_button');
                           if (AddressLine1 != '' && Locality != '' && State != null && Postcode != '') {
