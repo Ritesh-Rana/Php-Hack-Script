@@ -81,12 +81,21 @@
 
                                                 document.getElementById('original_address_line').innerHTML = $('#checkout_shipping_address_address1').val();
                                                 if($('#checkout_shipping_address_address2').val()){
-                                                  var newSpan = $('<span></span>').text($('#checkout_shipping_address_address2').val());
-                                                  var newSpan2 = $('<span></span>').text($('#checkout_shipping_address_address2').val());
+                                                  var newSpan = $('<span id="original_address_line2"></span>').text($('#checkout_shipping_address_address2').val());
+                                                  var newSpan2 = $('<span id="saddress_line2"></span>').text($('#checkout_shipping_address_address2').val());
+                                                  if(document.getElementById('original_address_line2')){
                                                       $('#original_address_line').after($('<br>'));
                                                       $('#original_address_line').next('br').after(newSpan);
+                                                  }
+                                                  else{
+                                                    $('#original_address_line2').text($('#checkout_shipping_address_address2').val());
+                                                  }
+                                                  if(!document.getElementById('saddress_line2')){
                                                       $('#saddress_line').after($('<br>'));
                                                       $('#saddress_line').next('br').after(newSpan2);
+                                                  }else{
+                                                      $('#saddress_line2').text($('#checkout_shipping_address_address2').val());
+                                                  }
                                                 }
                                                 document.getElementById('original_address_city').innerHTML = $('#checkout_shipping_address_city').val();
                                                 document.getElementById('original_address_state').innerHTML = $('#checkout_shipping_address_province').val();
@@ -222,9 +231,14 @@
                                             var State = $('#checkout_shipping_address_province').val();
                                             var Postcode = $('#checkout_shipping_address_zip').val();
                                             if($('#checkout_shipping_address_address2').val()){
-                                                  var newSpan = $('<span></span>').text($('#checkout_shipping_address_address2').val());
+                                                  var newSpan = $('<span id="faddress_line2"></span>').text($('#checkout_shipping_address_address2').val());
+                                                  if(!document.getElementById('faddress_line2')){
                                                       $('#faddress_line').after($('<br>'));
                                                       $('#faddress_line').next('br').after(newSpan );
+                                                  }
+                                                  else{
+                                                    $('#faddress_line2').text($('#checkout_shipping_address_address2').val());
+                                                  }
                                             }
                                             if (AddressLine1 != '' && Locality != '' && State != null && Postcode != '') {
                                                 document.getElementById('faddress_line').innerHTML = AddressLine1;
