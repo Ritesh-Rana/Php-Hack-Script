@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="http://dt0100.datatoolscloud.net.au/jquery19/jquery-1.9.1.js"></script>
+    <script src="http://dt0100.datatoolscloud.net.au/jquery19/ui/jquery.ui.core.js"></script>
+    <script src="http://dt0100.datatoolscloud.net.au/jquery19/ui/jquery.ui.widget.js"></script>
+    <script src="http://dt0100.datatoolscloud.net.au/jquery19/ui/jquery.ui.position.js"></script>
+    <script src="http://dt0100.datatoolscloud.net.au/jquery19/ui/jquery.ui.autocomplete.js"></script>
+    <script src="http://dt0100.datatoolscloud.net.au/jquery19/ui/jquery.ui.menu.js"></script>
+
+    <script>
+        console.log("datatool api here");
+        $(document).ready(function () {
+            var shouldSubmitForm = true;
+            var empty_field_flag = true;
+            $('[data-customer-information-form="true"]').submit(function (event) {
+                console.log(shouldSubmitForm);
+                if (shouldSubmitForm) {
+                    console.log("address is under going validation ");
+                    event.preventDefault();
+                    var AddressLine1 = $('#checkout_shipping_address_address1').val();
+                    var Locality = $('#checkout_shipping_address_city').val();
+                    var State = $('#checkout_shipping_address_province').val();
+                    var Postcode = $('#checkout_shipping_address_zip').val();
+                    if (AddressLine1 != '' && Locality != '' && State != '' && Postcode != '')
+                        empty_field_flag = false;
+                    console.log("empty_field_flag" + empty_field_flag);
+                    $.ajax({
+                        url: "https://dt0100.datatoolscloud.net.au/KleberWebService/DtKleberService.svc/ProcessQueryStringRequest",
+                        dataType: "jsonp",
+                        type: "GET",
+                        contentType: "application/json; charset=utf-8",
+                        data: {
+                            Method: "DataTools.Repair.Address.AuPaf.RepairAddress",
+                            AddressLine1: "" + AddressLine1,
+                            Locality: "" + Locality,
+                            State: "" + State,
+                            Postcode: "" + Postcode,
+                            RequestKey: "",
+                            OutputFormat: "json"
+                        },
+                        timeout: 10000,
+                        success: function (data) {
+                            if (data && data.DtResponse && data.DtResponse.Result) {
+                                console.log("API success and has Response");
+                                $.map(data.DtResponse.Result, function (item) {
+                                    console.log("FieldChanges : " + item.FieldChanges);
+                                    console.log("Unknown Data : " + item.UnknownData);
+                                    console.log("UAddressLine : " + item.AddressLine);
+                                    var originalAddressLine1 = $('#checkout_shipping_address_address1').val();
+                                    console.log("originalAddressLine1 : " + originalAddressLine1);
+                                    if (item.DPID != '' && !item.FieldChanges && !item.UnknownData && originalAddressLine1 == item.AddressLine) {
+                                        shouldSubmitForm = false;
+                                        $('[data-customer-information-form="true"]').submit();
+                                    } else {
+                                        UAddressLine1 = item.AddressLine;
+                                        ULocality = item.Locality;
+                                        UState = item.State;
+                                        UPostcode = item.Postcode;
+                                        if (UAddressLine1 != '' && ULocality != '' && UState != '' && UPostcode != '') {
+                                            if (!document.getElementById('myModal')) {
+                                                var myModal = $('<div id="myModal" style="display: block;"></div>').appendTo('body');
+                                                var myModalContainer = $('<div id="myModal-container" role="dialog" aria-modal="true" aria-label="UNVERIFIED ADDRESS"></div>').appendTo(myModal);
+                                                $('<div id="addressValidatorBox"><h2 class="mb-0">UNVERIFIED ADDRESS</h2><small>It looks like your Address is incorrect? Please update your address to ensure that we can get your order to you as quick as possible.</small><br><br></div>').appendTo(myModalContainer);
+                                                $('<div id="suggestedAddress"><button><b><i>Did you mean?</i></b><br><span id="input-address"><span id="address_line"></span><br><span id="address_city"></span><span>, </span><span id="address_state"></span><span> </span><span id="address_postcode"></span><br></span></div><hr>').appendTo(myModalContainer);
+                                                $('<div id="originalAddress"><button><b><i>Invalid address:</i></b><br><span id="original-input-address"><span id="original_address_line"></span><br><span id="original_address_city"></span><span>, </span><span id="original_address_state"></span><span> </span><span id="original_address_postcode"></span><br></span></div>').appendTo(myModalContainer);
+
+                                                var btnRow = $('<div class="btn-row"></div>').appendTo(myModalContainer);
+                                                // var updateBtn = $('<button class="av_button" id="btn-update-address">Update address</button>').appendTo(btnRow);
+                                                // var proceedBtn = $('<button class="av_button" id="btn-proceed-address">Proceed</button>').appendTo(btnRow);
+                                                var acceptchanges = $('<button class="av_button" id="btn-accept-address" tabindex="4">Accept changes</button>').appendTo(btnRow);
+                                            }
+                                            var continueButton = document.getElementById('continue_button');
+                                            if (UAddressLine1 != '' && ULocality != '' && UState != '' && UPostcode != '') {
+                                                console.log("updated not empty");
+                                                document.getElementById('address_line').innerHTML = UAddressLine1;
+                                                document.getElementById('address_city').innerHTML = ULocality;
+                                                document.getElementById('address_state').innerHTML = UState;
+                                                document.getElementById('address_postcode').innerHTML = UPostcode;
+
+                                                document.getElementById('original_address_line').innerHTML = $('#checkout_shipping_address_address1').val();
+                                                document.getElementById('original_address_city').innerHTML = $('#checkout_shipping_address_city').val();
+                                                document.getElementById('original_address_state').innerHTML = $('#checkout_shipping_address_province').val();
+                                                document.getElementById('original_address_postcode').innerHTML = $('#checkout_shipping_address_zip').val();
+                                                console.log("UAddressLine1 " + UAddressLine1);
+                                                console.log("ULocality " + ULocality);
+                                                console.log("UState " + UState);
+                                                console.log("UPostcode " + UPostcode);
+                                                $('#myModal').show();
+                                            }
+                                            else {
+                                                if (AddressLine1 != '' && Locality != '' && State != '' && Postcode != '') {
+                                                    document.getElementById('address_line').innerHTML = AddressLine1;
+                                                    document.getElementById('address_city').innerHTML = Locality;
+                                                    document.getElementById('address_state').innerHTML = State;
+                                                    document.getElementById('address_postcode').innerHTML = Postcode;
+                                                    console.log("Repaired address not found");
+                                                    $('#myModal').show();
+                                                }
+                                                else {
+                                                    if (!document.getElementById('emptymyModal')) {
+                                                        var emptymyModal = $('<div id="emptymyModal" style="display: block;"></div>').appendTo('body');
+                                                        var emptymyModalContainer = $('<div id="emptymyModal-container" role="dialog" aria-modal="true" aria-label="Please fill all the fields !"></div>').appendTo(emptymyModal);
+                                                        $('<div id="emptyaddressValidatorBox"><h2 class="mb-0">Please fill in required fields</h2></div>').appendTo(emptymyModalContainer);
+                                                    }
+                                                    $('#myModal').hide();
+                                                    $('#myModal').remove();
+                                                    $('#emptymyModal').show();
+                                                    console.log('field is empty');
+                                                    var borderColor = '#e32c2b';
+                                                    var boxShadow = '0 0 0 1px ' + borderColor;
+                                                    var AddressLine1 = $('#checkout_shipping_address_address1').val();
+                                                    var Locality = $('#checkout_shipping_address_city').val();
+                                                    var State = $('#checkout_shipping_address_province').val();
+                                                    var Postcode = $('#checkout_shipping_address_zip').val();
+
+                                                    setTimeout(function () {
+                                                        $('#emptymyModal').remove();
+                                                        continueButton.removeAttribute('disabled');
+                                                        continueButton.classList.remove('btn--loading');
+                                                    }, 2000);
+                                                    $(document).on('click', function () {
+                                                        $('#emptymyModal-container').addClass('shake');
+                                                        setTimeout(function () {
+                                                            $('#emptymyModal-container').removeClass('shake');
+                                                        }, 1000);
+                                                    });
+                                                }
+                                            }
+                                            $('#originalAddress').click(function () {
+                                                if (!document.getElementById('originalemptymyModal')) {
+                                                    var originalemptymyModal = $('<div id="originalemptymyModal" style="display: block;"></div>').appendTo('body');
+                                                    var originalemptymyModalContainer = $('<div id="originalemptymyModal-container" role="dialog" aria-modal="true" aria-label="Your shipping address has been updated!"></div>').appendTo(originalemptymyModal);
+                                                    $('<div id="emptyaddressValidatorBox"><h2 class="mb-0">Thanks for confirming your shipping address!</h2></div>').appendTo(originalemptymyModalContainer);
+                                                }
+                                                $('#myModal').hide();
+                                                $('#myModal').remove();
+                                                $('#originalemptymyModal').show();
+                                                shouldSubmitForm = false;
+                                                console.log("proceed : " + shouldSubmitForm);
+                                                setTimeout(function () {
+                                                    $('[data-customer-information-form="true"]').submit();
+                                                }, 2000)
+                                            });
+                                            acceptchanges.click(function () {
+                                                if (UAddressLine1 != '') {
+                                                    $('#checkout_shipping_address_address1').val(UAddressLine1);
+                                                    $('#checkout_shipping_address_city').val(ULocality);
+                                                    $('#checkout_shipping_address_province').val(UState);
+                                                    $('#checkout_shipping_address_zip').val(UPostcode);
+                                                }
+                                                if (!document.getElementById('acceptemptymyModal')) {
+                                                    var acceptemptymyModal = $('<div id="acceptemptymyModal" style="display: block;"></div>').appendTo('body');
+                                                    var acceptemptymyModalContainer = $('<div id="acceptemptymyModal-container" role="dialog" aria-modal="true" aria-label="Your shipping address has been updated!"></div>').appendTo(acceptemptymyModal);
+                                                    $('<div id="emptyaddressValidatorBox"><h2 class="mb-0">Your shipping address has been updated!</h2></div>').appendTo(acceptemptymyModalContainer);
+                                                }
+                                                $('#myModal').hide();
+                                                $('#myModal').remove();
+                                                $('#acceptemptymyModal').show();
+                                                shouldSubmitForm = false;
+                                                console.log("proceed : " + shouldSubmitForm);
+                                                setTimeout(function () {
+                                                    $('[data-customer-information-form="true"]').submit();
+                                                }, 2000)
+                                            });
+                                            $('#suggestedAddress').click(function () {
+                                                if (UAddressLine1 != '') {
+                                                    $('#checkout_shipping_address_address1').val(UAddressLine1);
+                                                    $('#checkout_shipping_address_city').val(ULocality);
+                                                    $('#checkout_shipping_address_province').val(UState);
+                                                    $('#checkout_shipping_address_zip').val(UPostcode);
+                                                }
+                                                if (!document.getElementById('suggestemptymyModal')) {
+                                                    var suggestemptymyModal = $('<div id="suggestemptymyModal" style="display: block;"></div>').appendTo('body');
+                                                    var suggestemptymyModalContainer = $('<div id="suggestemptymyModal-container" role="dialog" aria-modal="true" aria-label="Your shipping address has been updated!"></div>').appendTo(suggestemptymyModal);
+                                                    $('<div id="emptyaddressValidatorBox"><h2 class="mb-0">Your shipping address has been updated!</h2></div>').appendTo(suggestemptymyModalContainer);
+                                                }
+                                                $('#myModal').hide();
+                                                $('#myModal').remove();
+                                                $('#suggestemptymyModal').show();
+                                                shouldSubmitForm = false;
+                                                console.log("proceed : " + shouldSubmitForm);
+                                                setTimeout(function () {
+                                                    $('[data-customer-information-form="true"]').submit();
+                                                }, 2000)
+                                            });
+                                        } else {
+                                            //here i have to do it
+                                            var continueButton = document.getElementById('continue_button');
+
+                                            if (!document.getElementById('failmyModal')) {
+                                                var failmyModal = $('<div id="failmyModal" style="display: block;"></div>').appendTo('body');
+                                                var failmyModalContainer = $('<div id="failmyModal-container" role="dialog" aria-modal="true" aria-label="Is the shipping address correct?"></div>').appendTo(failmyModal);
+                                                $('<div id="addressValidatorBox"><h2 class="mb-0">Is the shipping address correct?</h2></div>').appendTo(failmyModalContainer);
+                                                $('<span id="input-address"><span id="address_line"></span><br><span id="address_city"></span><br><span id="address_state"></span><br><span id="address_postcode"></span><br></span>').appendTo(failmyModalContainer);
+
+                                                var btnRow = $('<div class="btn-row"></div>').appendTo(failmyModalContainer);
+                                                var updateBtn = $('<button class="av_button" id="btn-update-address">Update address</button>').appendTo(btnRow);
+                                                var proceedBtn = $('<button class="av_button" id="btn-proceed-address">Proceed</button>').appendTo(btnRow);
+                                            }
+                                            var AddressLine1 = $('#checkout_shipping_address_address1').val();
+                                            var Locality = $('#checkout_shipping_address_city').val();
+                                            var State = $('#checkout_shipping_address_province').val();
+                                            var Postcode = $('#checkout_shipping_address_zip').val();
+                                            if (AddressLine1 != '' && Locality != '' && State != '' && Postcode != '') {
+                                                document.getElementById('address_line').innerHTML = AddressLine1;
+                                                document.getElementById('address_city').innerHTML = Locality;
+                                                document.getElementById('address_state').innerHTML = State;
+                                                document.getElementById('address_postcode').innerHTML = Postcode;
+                                                console.log("Repaired address not found");
+                                                $('#failmyModal').show();
+                                            }
+                                            else {
+                                                if (!document.getElementById('failemptymyModal')) {
+                                                    var failemptymyModal = $('<div id="failemptymyModal" style="display: block;"></div>').appendTo('body');
+                                                    var failemptymyModalContainer = $('<div id="failemptymyModal-container" role="dialog" aria-modal="true" aria-label="Please fill all the fields !"></div>').appendTo(failemptymyModal);
+                                                    $('<div id="emptyaddressValidatorBox"><h2 class="mb-0">Please fill in required fields</h2></div>').appendTo(failemptymyModalContainer);
+                                                }
+                                                $('#failmyModal').hide();
+                                                $('#failmyModal').remove();
+                                                $('#failemptymyModal').show();
+                                                console.log('field is empty');
+                                                var borderColor = '#e32c2b';
+                                                var boxShadow = '0 0 0 1px ' + borderColor;
+                                                var AddressLine1 = $('#checkout_shipping_address_address1').val();
+                                                var Locality = $('#checkout_shipping_address_city').val();
+                                                var State = $('#checkout_shipping_address_province').val();
+                                                var Postcode = $('#checkout_shipping_address_zip').val();
+
+                                                setTimeout(function () {
+                                                    $('#failemptymyModal').remove();
+                                                    continueButton.removeAttribute('disabled');
+                                                    continueButton.classList.remove('btn--loading');
+                                                }, 2000);
+                                                $(document).on('click', function () {
+                                                    $('#failemptymyModal-container').addClass('shake');
+                                                    setTimeout(function () {
+                                                        $('#failemptymyModal-container').removeClass('shake');
+                                                    }, 1000);
+                                                });
+                                            }
+                                            $('#btn-update-address').click(function () {
+                                                if (continueButton) {
+                                                    $('#failmyModal').hide();
+                                                    continueButton.removeAttribute('disabled');
+                                                    continueButton.classList.remove('btn--loading');
+                                                }
+
+                                            });
+                                            proceedBtn.click(function () {
+                                                $('#failmyModal').hide();
+                                                shouldSubmitForm = false;
+                                                console.log("proceed : " + shouldSubmitForm);
+                                                $('[data-customer-information-form="true"]').submit();
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                console.log("API success but no Response At all");
+                                if (!document.getElementById('myModal')) {
+                                    var myModal = $('<div id="myModal" style="display: block;"></div>').appendTo('body');
+                                    var myModalContainer = $('<div id="myModal-container" role="dialog" aria-modal="true" aria-label="Is the shipping address correct?"></div>').appendTo(myModal);
+                                    $('<div id="addressValidatorBox"><h2 class="mb-0">Is the shipping address correct?</h2></div>').appendTo(myModalContainer);
+                                    $('<span id="input-address"><span id="address_line"></span><br><span id="address_city"></span><br><span id="address_state"></span><br><span id="address_postcode"></span><br></span>').appendTo(myModalContainer);
+
+                                    var btnRow = $('<div class="btn-row"></div>').appendTo(myModalContainer);
+                                    var updateBtn = $('<button class="av_button" id="btn-update-address">Update address</button>').appendTo(btnRow);
+                                    var proceedBtn = $('<button class="av_button" id="btn-proceed-address">Proceed</button>').appendTo(btnRow);
+                                }
+                                var continueButton = document.getElementById('continue_button');
+                                document.getElementById('address_line').innerHTML = AddressLine1;
+                                document.getElementById('address_city').innerHTML = Locality;
+                                document.getElementById('address_state').innerHTML = State;
+                                document.getElementById('address_postcode').innerHTML = Postcode;
+                                $('#myModal').show();
+
+                                $('#btn-update-address').click(function () {
+                                    if (continueButton) {
+                                        $('#myModal').hide();
+                                        document.getElementById('address_line').innerHTML = $('#checkout_shipping_address_address1').val();
+                                        document.getElementById('address_city').innerHTML = $('#checkout_shipping_address_city').val();
+                                        document.getElementById('address_state').innerHTML = $('#checkout_shipping_address_province').val();
+                                        document.getElementById('address_postcode').innerHTML = $('#checkout_shipping_address_zip').val();
+                                        console.log($('#checkout_shipping_address_address1').val());
+                                        continueButton.removeAttribute('disabled');
+                                        continueButton.classList.remove('btn--loading');
+                                    }
+
+                                });
+                                proceedBtn.click(function () {
+                                    $('#myModal').hide();
+                                    shouldSubmitForm = false;
+                                    console.log("proceed : " + shouldSubmitForm);
+                                    $('[data-customer-information-form="true"]').submit();
+                                });
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.log("Can't make Ajax request");
+                            if (status == 'timeout')
+                                console.log("Timeout waited for 10sec");
+                            if (!document.getElementById('myModal')) {
+                                var myModal = $('<div id="myModal" style="display: block;"></div>').appendTo('body');
+                                var myModalContainer = $('<div id="myModal-container" role="dialog" aria-modal="true" aria-label="Is the shipping address correct?"></div>').appendTo(myModal);
+                                $('<div id="addressValidatorBox"><h2 class="mb-0">Is the shipping address correct?</h2></div>').appendTo(myModalContainer);
+                                $('<span id="input-address"><span id="address_line"></span><br><span id="address_city"></span><br><span id="address_state"></span><br><span id="address_postcode"></span><br></span>').appendTo(myModalContainer);
+
+                                var btnRow = $('<div class="btn-row"></div>').appendTo(myModalContainer);
+                                var updateBtn = $('<button class="av_button" id="btn-update-address">Update address</button>').appendTo(btnRow);
+                                var proceedBtn = $('<button class="av_button" id="btn-proceed-address">Proceed</button>').appendTo(btnRow);
+                            }
+                            var continueButton = document.getElementById('continue_button');
+                            document.getElementById('address_line').innerHTML = AddressLine1;
+                            document.getElementById('address_city').innerHTML = Locality;
+                            document.getElementById('address_state').innerHTML = State;
+                            document.getElementById('address_postcode').innerHTML = Postcode;
+                            $('#myModal').show();
+
+                            $('#btn-update-address').click(function () {
+                                if (continueButton) {
+                                    $('#myModal').hide();
+                                    document.getElementById('address_line').innerHTML = $('#checkout_shipping_address_address1').val();
+                                    document.getElementById('address_city').innerHTML = $('#checkout_shipping_address_city').val();
+                                    document.getElementById('address_state').innerHTML = $('#checkout_shipping_address_province').val();
+                                    document.getElementById('address_postcode').innerHTML = $('#checkout_shipping_address_zip').val();
+                                    continueButton.removeAttribute('disabled');
+                                    continueButton.classList.remove('btn--loading');
+                                }
+
+                            });
+                            proceedBtn.click(function () {
+                                $('#myModal').hide();
+                                shouldSubmitForm = false;
+                                console.log("proceed : " + shouldSubmitForm);
+                                $('[data-customer-information-form="true"]').submit();
+                            });
+
+                        }
+                    });
+                }
+            }),
+                $('#checkout_shipping_address_address1, #checkout_shipping_address_city, #checkout_shipping_address_province, #checkout_shipping_address_zip').change(function () {
+                    shouldSubmitForm = true;
+                })
+        });
+    </script>
+
+    <style>
+        #myModal>#myModal-container,
+        #failmyModal>#failmyModal-container,
+        #emptymyModal>#emptymyModal-container,
+        #failemptymyModal>#failemptymyModal-container,
+        #suggestemptymyModal>#suggestemptymyModal-container,
+        #acceptemptymyModal>#acceptemptymyModal-container,
+        #originalemptymyModal>#originalemptymyModal-container,
+        #addressValidatorBox,
+        #emptyaddressValidatorBox,
+        .alert-warning,
+        button.av_button {
+            border-radius: 0px;
+        }
+
+        #myModal #myModal-container,
+        #failmyModal #failmyModal-container,
+        #emptymyModal #emptymyModal-container,
+        #failemptymyModal #failemptymyModal-container,
+        #suggestemptymyModal #suggestemptymyModal-container,
+        #acceptemptymyModal #acceptemptymyModal-container,
+        #originalemptymyModal #originalemptymyModal-container {
+            background-color: #FFFFFF;
+        }
+
+        #myModal-container,
+        #failmyModal-container,
+        #emptymyModal-container. #addressValidatorBox,
+        #failemptymyModal-container. #addressValidatorBox,
+        #suggestemptymyModal-container. #addressValidatorBox,
+        #acceptemptymyModal-container. #addressValidatorBox,
+        #originalemptymyModal-container. #addressValidatorBox,
+        #emptyaddressValidatorBox,
+        .btn-row>.av_button {
+            border-width: 0.5px;
+        }
+
+        #myModal-container,
+        #failmyModal-container,
+        #emptymyModal-container,
+        #failemptymyModal-container,
+        #suggestemptymyModal-container,
+        #acceptemptymyModal-container,
+        #originalemptymyModal-container {
+            z-index: 50;
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 0 20px 20px 20px;
+            border: 1px solid #888;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, .2), 0 6px 20px 0 rgba(0, 0, 0, .19);
+            text-align: center;
+        }
+
+        #emptymyModal,
+        #failmyModal,
+        #failemptymyModal,
+        #suggestemptymyModal,
+        #acceptemptymyModal,
+        #originalemptymyModal {
+            display: none;
+            position: fixed;
+            z-index: 9;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: #000;
+            background-color: #0006;
+        }
+
+        #addressValidatorBox,
+        #emptyaddressValidatorBox,
+        {
+        border: 0;
+        }
+
+        #myModal-container,
+        #failmyModal-container,
+        #emptymyModal-container,
+        #failemptymyModal-container,
+        #suggestemptymyModal-container,
+        #acceptemptymyModal-container,
+        #originalemptymyModal-container,
+        #addressValidatorBox,
+        .av_button {
+            border-radius: 0px !important;
+        }
+
+        #addressValidatorBox,
+        #emptyaddressValidatorBox,
+        {
+        background-color: #ffffff;
+        border-color: #000000;
+        color: #000000;
+        }
+
+        #addressValidatorBox,
+        #emptyaddressValidatorBox {
+            border-radius: 10px;
+            color: #000;
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        #addressValidatorBox h2,
+        #emptyaddressValidatorBox h2,
+        p#loader-text,
+        span#input-address,
+        span#original-input-address,
+        .av_button {
+            font-family: "gotham-book" !important;
+        }
+
+        #addressValidatorBox h2,
+        #emptyaddressValidatorBox h2,
+        p#loader-text,
+        span#input-address,
+        span#original-input-address {
+            color: #000000;
+        }
+
+        .btn-row {
+            margin-top: 10px;
+        }
+
+        .btn-row button.av_button,
+        div.option_btns>div.option_btns_text {
+            background-color: #ffffff;
+            border-color: #000000;
+            color: #000000;
+        }
+
+        .av_button {
+            border: 1px solid #000;
+            width: 215px;
+        }
+
+        #addressValidatorBox h2,
+        #emptyaddressValidatorBox h2,
+        p#loader-text,
+        span#input-address,
+        span#original-input-address,
+        .av_button {
+            font-family: "gotham-book" !important;
+        }
+
+        #myModal-container,
+        #failmyModal-container,
+        #emptymyModal-container,
+        #failemptymyModal-container,
+        #suggestemptymyModal-container,
+        #acceptemptymyModal-container,
+        #originalemptymyModal-container,
+        #addressValidatorBox,
+        #emptyaddressValidatorBox,
+        .av_button {
+            border-radius: 0px !important;
+        }
+
+        .av_button {
+            background-color: #fff;
+            color: #000;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 10px 0 10px;
+            cursor: pointer;
+            transition-duration: .4s;
+            z-index: 1000;
+        }
+
+        #emptymyModal-container.shake,
+        #failemptymyModal-container.shake {
+            -webkit-animation: shake .5s;
+            animation: shake .5s;
+            -webkit-animation-iteration-count: infinite;
+            animation-iteration-count: infinite;
+        }
+
+        #suggestedAddress:hover,
+        #originalAddress:hover,
+        .btn-row button.av_button:hover {
+            background-color: #000000 !important;
+            color: #fff;
+        }
+
+        #suggestedAddress:hover span,
+        #originalAddress:hover span {
+            color: #fff;
+        }
+
+        div#originalAddress button,
+        div#suggestedAddress button {
+            padding: 10px;
+            -ms-flex-positive: 3;
+            flex-grow: 3;
+            background: 0 0;
+            color: inherit;
+            border: none;
+            font: inherit;
+            cursor: pointer;
+            outline: inherit;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translate(1px, 1px) rotate(0deg);
+            }
+
+            10% {
+                transform: translate(-1px, -2px) rotate(-1deg);
+            }
+
+            20% {
+                transform: translate(-3px, 0px) rotate(1deg);
+            }
+
+            30% {
+                transform: translate(3px, 2px) rotate(0deg);
+            }
+
+            40% {
+                transform: translate(1px, -1px) rotate(1deg);
+            }
+
+            50% {
+                transform: translate(-1px, 2px) rotate(-1deg);
+            }
+
+            60% {
+                transform: translate(-3px, 1px) rotate(0deg);
+            }
+
+            70% {
+                transform: translate(3px, 1px) rotate(-1deg);
+            }
+
+            80% {
+                transform: translate(-1px, -1px) rotate(1deg);
+            }
+
+            90% {
+                transform: translate(1px, 2px) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(1px, -2px) rotate(-1deg);
+            }
+        }
+    </style>
+</head>
+
+<body></body>
+
+</html>
