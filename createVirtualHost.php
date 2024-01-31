@@ -16,7 +16,7 @@ function createVirtualHost($domain, $documentRoot)
         <VirtualHost *:80>
             ServerAdmin webmaster@localhost
             DocumentRoot $documentRoot
-            ServerName $domain
+            ServerName $domain.com
             <Directory $documentRoot>
                 Options Indexes FollowSymLinks
                 AllowOverride All
